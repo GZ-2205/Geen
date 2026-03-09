@@ -16,8 +16,10 @@ $ ./bin/sql-client.sh
 
 ## 2. Flink_SQL加工逻辑
 
+### 2.1 动态表和静态表结构
+
 ```sql
--- 33个接口，主要分为动态表、静态表和目标表
+-- 38个接口，主要分为动态表、静态表和目标表
 
 -- 动态表结构
 CREATE TABLE TTRD_DYN
@@ -52,7 +54,7 @@ WATERMARK FOR  event_ts AS event_ts - INTERVAL '5' SECOND
 
 ```
 
-
+### 2.2 目标表结构
 
 ```sql
 -- 目标表结构
@@ -76,5 +78,22 @@ CREATE TABLE BASE_DL(
 	'properties.sasl.mechanism' = 'SCRAM-SHA-512',
 	'properties.sasl.jass.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username="ipms" password="Kafka@9632";'
 );
+```
+
+
+
+### 2.3 加工逻辑
+
+```sql
+INSERT INTO BAS_DL
+SELECT
+...
+,CAST(to_date(SUBSTR(TTP.UPDATE, 1, 8), 'yyyyMMdd') as VARCHAR(10)) as INS_UPD_DT -- UPDATE_TIME(截取前8位转10位日期)
+,CAST(date_format(to_timestamp(TTP.UPDATE_TIME, 'yyyyMMdd HH:mm:ss.SSS'), 'HH:mm:ss') as VARCHAR(8)) as INS_UPD_TM -- UPDATE_TIME(截取中间8位时间)
+...
+FROM
+...
+WHERE
+...;
 ```
 
